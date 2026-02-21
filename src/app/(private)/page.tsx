@@ -80,7 +80,7 @@ export default async function HomePage() {
                             }}>
                                 {p.thumb_url ? (
                                     <img
-                                        src={p.thumb_url.replace("=s220", "=s600")}
+                                        src={`/api/image?id=${p.drive_file_id}`}
                                         alt={p.filename}
                                         style={{ width: "100%", height: "100%", objectFit: "cover" }}
                                     />
