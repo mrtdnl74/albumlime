@@ -23,13 +23,27 @@ export async function POST(req: Request) {
         const message = body.message;
         if (!message) return NextResponse.json({ ok: true });
 
+        const chatId = message.chat?.id;
+
+        if (message.text === "/start") {
+            if (chatId) {
+                await bot.telegram.sendMessage(chatId, "Benvenuto! 👋\nInviami foto e video e li salverò automaticamente nell'AlbumLime! 🍋📸");
+            }
+            return NextResponse.json({ ok: true });
+        }
+
         // Cerchiamo una foto o un documento (immagine/video)
         const photo = message.photo?.pop(); // Prende la versione più grande
         const document = message.document?.mime_type?.startsWith("image/") || message.document?.mime_type?.startsWith("video/") ? message.document : null;
         const video = message.video;
 
         const fileId = photo?.file_id || document?.file_id || video?.file_id;
-        if (!fileId) return NextResponse.json({ ok: true });
+        if (!fileId) {
+            if (chatId && !message.text) {
+                await bot.telegram.sendMessage(chatId, "❌ Formato non supportato. Inviami solo foto o video.");
+            }
+            return NextResponse.json({ ok: true });
+        }
 
         // Otteniamo il link del file da Telegram
         const fileLink = await bot.telegram.getFileLink(fileId);
@@ -49,6 +63,10 @@ export async function POST(req: Request) {
 
         // Ingestione su Supabase
         await ingestPhoto(driveFile.id!);
+
+        if (chatId) {
+            await bot.telegram.sendMessage(chatId, `✅ ${video ? 'Video' : 'Foto'} aggiunto con successo all'Album! 🍋`);
+        }
 
         return NextResponse.json({ ok: true });
     } catch (err: any) {
