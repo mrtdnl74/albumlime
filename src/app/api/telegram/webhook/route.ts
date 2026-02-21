@@ -7,11 +7,15 @@ const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || "";
 const TELEGRAM_API = `https://api.telegram.org/bot${BOT_TOKEN}`;
 
 async function sendMessage(chatId: number, text: string) {
-    await fetch(`${TELEGRAM_API}/sendMessage`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ chat_id: chatId, text }),
-    });
+    try {
+        await fetch(`${TELEGRAM_API}/sendMessage`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ chat_id: chatId, text }),
+        });
+    } catch (e) {
+        console.error("sendMessage error:", e);
+    }
 }
 
 async function getFileLink(fileId: string): Promise<string> {
